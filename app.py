@@ -1,8 +1,9 @@
 import streamlit as st
 import random
 
-# -------------------------------
-# Hydration recommendations by age group (ml)
+# =========================================
+# 1. Constants
+# =========================================
 AGE_GROUPS = {
     "Children (4-8 years)": 1200,
     "Teens (9-13 years)": 1700,
@@ -18,36 +19,39 @@ HYDRATION_TIPS = [
     "Hydrate after exercise to recover faster."
 ]
 
-# -------------------------------
-# Initialize session state
-if "phase" not in st.session_state:
-    st.session_state.phase = 1
-if "age_group" not in st.session_state:
-    st.session_state.age_group = None
-if "goal" not in st.session_state:
-    st.session_state.goal = 0
-if "total" not in st.session_state:
-    st.session_state.total = 0
-if "log_pref" not in st.session_state:
-    st.session_state.log_pref = "quick"
-if "show_tips" not in st.session_state:
-    st.session_state.show_tips = True
-if "mascot_on" not in st.session_state:
-    st.session_state.mascot_on = True
+# =========================================
+# 2. Session State Initialization
+# =========================================
+def init_session():
+    defaults = {
+        "phase": 1,
+        "age_group": None,
+        "goal": 0,
+        "total": 0,
+        "log_pref": "quick",
+        "show_tips": True,
+        "mascot_on": True,
+    }
+    for key, val in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = val
 
-# -------------------------------
-# Custom CSS for dark neon theme
+init_session()
+
+# =========================================
+# 3. Custom Styling
+# =========================================
 st.markdown("""
     <style>
     .main {
         background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
         color: #E0E0E0;
     }
-    h1, h2, h3, h4 {
+    h1, h2, h3 {
         color: #00E0FF !important;
         font-family: 'Trebuchet MS', sans-serif;
     }
-    .stButton>button {
+    div.stButton > button:first-child {
         background: linear-gradient(90deg, #FF0080, #7928CA);
         color: white;
         border-radius: 30px;
@@ -57,31 +61,26 @@ st.markdown("""
         box-shadow: 0px 4px 10px rgba(0,0,0,0.4);
         transition: all 0.3s ease-in-out;
     }
-    .stButton>button:hover {
+    div.stButton > button:first-child:hover {
         background: linear-gradient(90deg, #FF4D4D, #FF0080);
         transform: translateY(-3px) scale(1.05);
     }
     .stProgress > div > div {
         background-color: #00E0FF !important;
     }
-    .stCheckbox>label {
-        color: #FFD700 !important;
-        font-weight: bold;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# -------------------------------
-# Phase 1: Welcome
-if st.session_state.phase == 1:
+# =========================================
+# 4. Phase Functions
+# =========================================
+def phase_welcome():
     st.title("💧 Welcome to WaterBuddy")
     st.write("Your neon-styled daily hydration companion.")
     if st.button("Let's begin 💧"):
         st.session_state.phase = 2
 
-# -------------------------------
-# Phase 2: Age selection
-elif st.session_state.phase == 2:
+def phase_age_selection():
     st.header("Step 1: Select your age group")
     for group, ml in AGE_GROUPS.items():
         if st.button(group):
@@ -89,9 +88,7 @@ elif st.session_state.phase == 2:
             st.session_state.goal = ml
             st.session_state.phase = 3
 
-# -------------------------------
-# Phase 3: Goal confirmation
-elif st.session_state.phase == 3:
+def phase_goal_confirmation():
     st.header("Step 2: Confirm or adjust your daily goal")
     st.write(f"Recommended goal for {st.session_state.age_group}: {AGE_GROUPS[st.session_state.age_group]} ml")
     st.session_state.goal = st.number_input(
@@ -104,9 +101,7 @@ elif st.session_state.phase == 3:
     if st.button("Continue ➡️"):
         st.session_state.phase = 4
 
-# -------------------------------
-# Phase 4: Logging preference
-elif st.session_state.phase == 4:
+def phase_logging_pref():
     st.header("Step 3: Choose your logging preference")
     col1, col2 = st.columns(2)
     with col1:
@@ -118,18 +113,14 @@ elif st.session_state.phase == 4:
             st.session_state.log_pref = "custom"
             st.session_state.phase = 5
 
-# -------------------------------
-# Phase 5: Optional settings
-elif st.session_state.phase == 5:
+def phase_optional_settings():
     st.header("Step 4: Personalize your experience")
     st.session_state.show_tips = st.checkbox("Show daily hydration tips", value=True)
     st.session_state.mascot_on = st.checkbox("Enable mascot reactions", value=True)
     if st.button("Finish setup ✅"):
         st.session_state.phase = 6
 
-# -------------------------------
-# Phase 6: Dashboard
-elif st.session_state.phase == 6:
+def phase_dashboard():
     st.title("📊 WaterBuddy Dashboard")
     st.write(f"**Age group:** {st.session_state.age_group}")
     st.write(f"**Daily goal:** {st.session_state.goal} ml")
@@ -148,7 +139,7 @@ elif st.session_state.phase == 6:
     if st.button("🔄 New Day (Reset)"):
         st.session_state.total = 0
 
-    # Calculations
+    # Progress
     remaining = max(st.session_state.goal - st.session_state.total, 0)
     progress = min(st.session_state.total / st.session_state.goal, 1.0)
 
@@ -157,7 +148,7 @@ elif st.session_state.phase == 6:
     st.write(f"**Remaining to goal:** {remaining} ml")
     st.write(f"**Progress:** {progress*100:.1f}%")
 
-    # Motivational messages with emojis
+    # Mascot reactions
     if st.session_state.mascot_on:
         if progress == 0:
             st.info("Let's start hydrating! 🚰🙂")
@@ -176,3 +167,17 @@ elif st.session_state.phase == 6:
         st.write("---")
         st.write("💡 Tip of the day:")
         st.write(random.choice(HYDRATION_TIPS))
+
+# =========================================
+# 5. Main App Runner
+# =========================================
+phase_map = {
+    1: phase_welcome,
+    2: phase_age_selection,
+    3: phase_goal_confirmation,
+    4: phase_logging_pref,
+    5: phase_optional_settings,
+    6: phase_dashboard,
+}
+
+phase_map[st.session_state.phase]()
