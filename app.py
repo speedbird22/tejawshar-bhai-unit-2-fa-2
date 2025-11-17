@@ -29,8 +29,9 @@ def init_session():
         "goal": 0,
         "total": 0,
         "log_pref": "quick",
-        "show_tips": True,
-        "mascot_on": True,
+        "show_tips": True,   # always enabled
+        "mascot_on": True,   # always enabled
+        "dashboard_section": None,  # track which section is open
     }
     for key, val in defaults.items():
         if key not in st.session_state:
@@ -129,51 +130,54 @@ def phase_logging_pref():
         st.markdown('</div>', unsafe_allow_html=True)
         if quick:
             st.session_state.log_pref = "quick"
-            st.session_state.phase = 5
+            st.session_state.phase = 6   # go directly to dashboard
     with cols[1]:
         st.markdown('<div class="card">', unsafe_allow_html=True)
         custom = st.button("Custom entry")
         st.markdown('</div>', unsafe_allow_html=True)
         if custom:
             st.session_state.log_pref = "custom"
-            st.session_state.phase = 5
+            st.session_state.phase = 6   # go directly to dashboard
 
-def phase_optional_settings():
-    st.header("Step 4: Personalize your experience")
-    st.session_state.show_tips = st.checkbox("Show daily hydration tips", value=True)
-    st.session_state.mascot_on = st.checkbox("Enable mascot reactions", value=True)
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    finish = st.button("Finish setup ✅")
-    st.markdown('</div>', unsafe_allow_html=True)
-    if finish:
-        st.session_state.phase = 6
-
-def phase_dashboard():
+# =========================================
+# Dashboard Sections
+# =========================================
+def dashboard_navigation():
     st.title("📊 WaterBuddy Dashboard")
     st.write(f"**Age group:** {st.session_state.age_group}")
     st.write(f"**Daily goal:** {st.session_state.goal} ml")
 
+    st.write("### Navigate:")
+    cols = st.columns(4)
+    with cols[0]:
+        if st.button("Log Intake"):
+            st.session_state.dashboard_section = "log"
+    with cols[1]:
+        if st.button("Progress"):
+            st.session_state.dashboard_section = "progress"
+    with cols[2]:
+        if st.button("Mascot"):
+            st.session_state.dashboard_section = "mascot"
+    with cols[3]:
+        if st.button("Tips"):
+            st.session_state.dashboard_section = "tips"
+
+def dashboard_log():
+    st.subheader("💧 Log Intake")
     cols = st.columns(2)
     with cols[0]:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        add_quick = st.button("+250 ml")
-        st.markdown('</div>', unsafe_allow_html=True)
-        if add_quick:
+        if st.button("+250 ml"):
             st.session_state.total += 250
     with cols[1]:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
         manual_amount = st.number_input("Log custom amount (ml):", min_value=0, step=50)
-        add_custom = st.button("Add custom amount")
-        st.markdown('</div>', unsafe_allow_html=True)
-        if add_custom:
+        if st.button("Add custom amount"):
             st.session_state.total += manual_amount
 
-    st.markdown('<div class="card">', unsafe_allow_html=True)
-    reset = st.button("🔄 New Day (Reset)")
-    st.markdown('</div>', unsafe_allow_html=True)
-    if reset:
+    if st.button("🔄 New Day (Reset)"):
         st.session_state.total = 0
 
+def dashboard_progress():
+    st.subheader("📈 Progress")
     remaining = max(st.session_state.goal - st.session_state.total, 0)
     progress = min(st.session_state.total / st.session_state.goal, 1.0)
 
@@ -182,23 +186,24 @@ def phase_dashboard():
     st.write(f"**Remaining to goal:** {remaining} ml")
     st.write(f"**Progress:** {progress*100:.1f}%")
 
-    if st.session_state.mascot_on:
-        if progress == 0:
-            st.info("Let's start hydrating! 🚰🙂")
-        elif progress < 0.5:
-            st.info("Good start! Keep sipping 💦😃")
-        elif progress < 0.75:
-            st.success("Nice! You're halfway there 😎")
-        elif progress < 1.0:
-            st.success("Almost at your goal! 🌊🤗")
-        else:
-            st.balloons()
-            st.success("🎉 Congratulations! You hit your hydration goal! 🥳")
+def dashboard_mascot():
+    st.subheader("🤖 Mascot Messages")
+    progress = min(st.session_state.total / st.session_state.goal, 1.0)
+    if progress == 0:
+        st.info("Let's start hydrating! 🚰🙂")
+    elif progress < 0.5:
+        st.info("Good start! Keep sipping 💦😃")
+    elif progress < 0.75:
+        st.success("Nice! You're halfway there 😎")
+    elif progress < 1.0:
+        st.success("Almost at your goal! 🌊🤗")
+    else:
+        st.balloons()
+        st.success("🎉 Congratulations! You hit your hydration goal! 🥳")
 
-    if st.session_state.show_tips:
-        st.write("---")
-        st.write("💡 Tip of the day:")
-        st.write(random.choice(HYDRATION_TIPS))
+def dashboard_tips():
+    st.subheader("💡 Tip of the Day")
+    st.write(random.choice(HYDRATION_TIPS))
 
 # =========================================
 # Main Runner
@@ -208,8 +213,18 @@ phase_map = {
     2: phase_age_selection,
     3: phase_goal_confirmation,
     4: phase_logging_pref,
-    5: phase_optional_settings,
-    6: phase_dashboard,
+    6: dashboard_navigation,
 }
 
 phase_map[st.session_state.phase]()
+
+# Show dashboard section if selected
+if st.session_state.phase == 6 and st.session_state.dashboard_section:
+    if st.session_state.dashboard_section == "log":
+        dashboard_log()
+    elif st.session_state.dashboard_section == "progress":
+        dashboard_progress()
+    elif st.session_state.dashboard_section == "mascot":
+        dashboard_mascot()
+    elif st.session_state.dashboard_section == "tips":
+        dashboard_tips()
