@@ -36,25 +36,37 @@ if "mascot_on" not in st.session_state:
     st.session_state.mascot_on = True
 
 # -------------------------------
-# Custom CSS for new background & buttons
+# Custom CSS for dark neon theme
 st.markdown("""
     <style>
-    body {
-        background: linear-gradient(to right, #FFDEE9, #B5FFFC);
+    .main {
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        color: #E0E0E0;
+    }
+    h1, h2, h3, h4 {
+        color: #00E0FF !important;
+        font-family: 'Trebuchet MS', sans-serif;
     }
     .stButton>button {
-        background-color: #FF6B6B;
+        background: linear-gradient(90deg, #FF0080, #7928CA);
         color: white;
-        border-radius: 20px;
+        border-radius: 30px;
         font-size: 18px;
-        padding: 12px 24px;
+        padding: 12px 28px;
         border: none;
-        box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
-        transition: 0.3s;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.4);
+        transition: all 0.3s ease-in-out;
     }
     .stButton>button:hover {
-        background-color: #FF3B3B;
-        transform: scale(1.05);
+        background: linear-gradient(90deg, #FF4D4D, #FF0080);
+        transform: translateY(-3px) scale(1.05);
+    }
+    .stProgress > div > div {
+        background-color: #00E0FF !important;
+    }
+    .stCheckbox>label {
+        color: #FFD700 !important;
+        font-weight: bold;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -63,7 +75,7 @@ st.markdown("""
 # Phase 1: Welcome
 if st.session_state.phase == 1:
     st.title("💧 Welcome to WaterBuddy")
-    st.write("Your friendly daily hydration companion.")
+    st.write("Your neon-styled daily hydration companion.")
     if st.button("Let's begin 💧"):
         st.session_state.phase = 2
 
