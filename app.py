@@ -2,7 +2,7 @@ import streamlit as st
 import random
 
 # =========================================
-# 1. Constants
+# Constants
 # =========================================
 AGE_GROUPS = {
     "Children (4-8 years)": 1200,
@@ -20,7 +20,7 @@ HYDRATION_TIPS = [
 ]
 
 # =========================================
-# 2. Session State Initialization
+# Session State Initialization
 # =========================================
 def init_session():
     defaults = {
@@ -39,54 +39,69 @@ def init_session():
 init_session()
 
 # =========================================
-# 3. Custom Styling
+# Custom Styling (Square Cards + Dark Theme)
 # =========================================
 st.markdown("""
     <style>
     .main {
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        background: linear-gradient(135deg, #1f1c2c, #928dab);
         color: #E0E0E0;
     }
     h1, h2, h3 {
-        color: #00E0FF !important;
+        color: #FFD700 !important;
         font-family: 'Trebuchet MS', sans-serif;
     }
-    div.stButton > button:first-child {
-        background: linear-gradient(90deg, #FF0080, #7928CA);
-        color: white;
-        border-radius: 30px;
-        font-size: 18px;
-        padding: 12px 28px;
-        border: none;
+    .card {
+        background: #2c2c54;
+        padding: 20px;
+        border-radius: 12px;
         box-shadow: 0px 4px 10px rgba(0,0,0,0.4);
+        margin: 10px;
+        text-align: center;
+    }
+    div.stButton > button:first-child {
+        background: #00ADB5;
+        color: white;
+        border-radius: 8px;
+        font-size: 16px;
+        padding: 10px 20px;
+        border: none;
         transition: all 0.3s ease-in-out;
     }
     div.stButton > button:first-child:hover {
-        background: linear-gradient(90deg, #FF4D4D, #FF0080);
-        transform: translateY(-3px) scale(1.05);
+        background: #007B7F;
+        transform: scale(1.05);
     }
     .stProgress > div > div {
-        background-color: #00E0FF !important;
+        background-color: #FFD700 !important;
     }
     </style>
 """, unsafe_allow_html=True)
 
 # =========================================
-# 4. Phase Functions
+# Phases
 # =========================================
 def phase_welcome():
     st.title("💧 Welcome to WaterBuddy")
-    st.write("Your neon-styled daily hydration companion.")
-    if st.button("Let's begin 💧"):
+    st.write("Your redesigned hydration companion.")
+    with st.container():
+        st.markdown('<div class="card">', unsafe_allow_html=True)
+        st.button("Let's begin 💧")
+        st.markdown('</div>', unsafe_allow_html=True)
+    if st.session_state.get("Let's begin 💧"):
         st.session_state.phase = 2
 
 def phase_age_selection():
     st.header("Step 1: Select your age group")
-    for group, ml in AGE_GROUPS.items():
-        if st.button(group):
-            st.session_state.age_group = group
-            st.session_state.goal = ml
-            st.session_state.phase = 3
+    cols = st.columns(2)
+    for i, (group, ml) in enumerate(AGE_GROUPS.items()):
+        with cols[i % 2]:
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+            if st.button(group):
+                st.session_state.age_group = group
+                st.session_state.goal = ml
+                st.session_state.phase = 3
+            st.markdown('</div>', unsafe_allow_html=True)
 
 def phase_goal_confirmation():
     st.header("Step 2: Confirm or adjust your daily goal")
@@ -98,48 +113,59 @@ def phase_goal_confirmation():
         value=AGE_GROUPS[st.session_state.age_group],
         step=100
     )
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     if st.button("Continue ➡️"):
         st.session_state.phase = 4
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def phase_logging_pref():
     st.header("Step 3: Choose your logging preference")
-    col1, col2 = st.columns(2)
-    with col1:
+    cols = st.columns(2)
+    with cols[0]:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         if st.button("Quick log (+250 ml)"):
             st.session_state.log_pref = "quick"
             st.session_state.phase = 5
-    with col2:
+        st.markdown('</div>', unsafe_allow_html=True)
+    with cols[1]:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         if st.button("Custom entry"):
             st.session_state.log_pref = "custom"
             st.session_state.phase = 5
+        st.markdown('</div>', unsafe_allow_html=True)
 
 def phase_optional_settings():
     st.header("Step 4: Personalize your experience")
     st.session_state.show_tips = st.checkbox("Show daily hydration tips", value=True)
     st.session_state.mascot_on = st.checkbox("Enable mascot reactions", value=True)
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     if st.button("Finish setup ✅"):
         st.session_state.phase = 6
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def phase_dashboard():
     st.title("📊 WaterBuddy Dashboard")
     st.write(f"**Age group:** {st.session_state.age_group}")
     st.write(f"**Daily goal:** {st.session_state.goal} ml")
 
-    # Logging intake
-    col1, col2 = st.columns(2)
-    with col1:
+    cols = st.columns(2)
+    with cols[0]:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         if st.button("+250 ml"):
             st.session_state.total += 250
-    with col2:
+        st.markdown('</div>', unsafe_allow_html=True)
+    with cols[1]:
+        st.markdown('<div class="card">', unsafe_allow_html=True)
         manual_amount = st.number_input("Log custom amount (ml):", min_value=0, step=50)
         if st.button("Add custom amount"):
             st.session_state.total += manual_amount
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    # Reset
+    st.markdown('<div class="card">', unsafe_allow_html=True)
     if st.button("🔄 New Day (Reset)"):
         st.session_state.total = 0
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Progress
     remaining = max(st.session_state.goal - st.session_state.total, 0)
     progress = min(st.session_state.total / st.session_state.goal, 1.0)
 
@@ -148,7 +174,6 @@ def phase_dashboard():
     st.write(f"**Remaining to goal:** {remaining} ml")
     st.write(f"**Progress:** {progress*100:.1f}%")
 
-    # Mascot reactions
     if st.session_state.mascot_on:
         if progress == 0:
             st.info("Let's start hydrating! 🚰🙂")
@@ -162,14 +187,13 @@ def phase_dashboard():
             st.balloons()
             st.success("🎉 Congratulations! You hit your hydration goal! 🥳")
 
-    # Tips
     if st.session_state.show_tips:
         st.write("---")
         st.write("💡 Tip of the day:")
         st.write(random.choice(HYDRATION_TIPS))
 
 # =========================================
-# 5. Main App Runner
+# Main Runner
 # =========================================
 phase_map = {
     1: phase_welcome,
